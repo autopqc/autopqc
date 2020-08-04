@@ -1,0 +1,35 @@
+(*PRF-based MAC*)
+adversary A: Fq * qubit -> qubit.
+operator M: qubit -> Bool.
+operator M': qubit -> 
+operator PRF: Fq * Fq -> Fq.
+operator RF: Fq -> Fq.
+oracle RF0: Fq -> Fq.
+oracle RF0: Fq -> Fq.
+oracle MAC: Fq -> Fq.
+
+(* QPRF assumption *)
+adversary A_qprf : Fq * qubit -> qubit.
+
+assumption qprf
+  [ k <-$ Fq; 
+    rho' <- A_qprf(q, rho) with 
+         RF0(x) = {
+           return PRF(k, x)
+         }; let b = M(rho'); ]
+  [ rho' <- A_qprf(q, rho) with 
+         RF1(x) = {
+           return RF(x)
+         }; let b = M(rho'); ].
+
+assumption qro
+
+bound_adv
+  [ (* MAC key *)
+    k <-$ Fq;
+    rho' <- A(q, rho)  with
+      MAC(x) = {
+        return PRF(k, x)
+      };
+    let (mi, ti) = List{q + 1} M'(rho');
+  ] : 
