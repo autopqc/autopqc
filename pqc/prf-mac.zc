@@ -5,7 +5,7 @@ operator M': qubit ->
 operator PRF: Fq * Fq -> Fq.
 operator RF: Fq -> Fq.
 oracle RF0: Fq -> Fq.
-oracle RF0: Fq -> Fq.
+oracle RF1: Fq -> Fq.
 oracle MAC: Fq -> Fq.
 
 (* QPRF assumption *)
@@ -23,6 +23,12 @@ assumption qprf
          }; let b = M(rho'); ].
 
 assumption qro
+  [ rho' <- A_qprf(q, rho) with 
+         RF1(x) = {
+           return RF(x)
+         }; 
+         let (xi, ti) = List_{q + 1} M'(rho'); 
+  ]: List_{q + 1} ti = RF(xi);
 
 bound_adv
   [ (* MAC key *)
@@ -31,5 +37,5 @@ bound_adv
       MAC(x) = {
         return PRF(k, x)
       };
-    let (mi, ti) = List{q + 1} M'(rho');
-  ] : 
+    let (xi, ti) = List_{q + 1} M'(rho');
+  ] : List_{q + 1} ti = PRF(k, xi);
