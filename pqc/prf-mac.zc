@@ -37,7 +37,7 @@ oracle MAC: BS_msg -> BS_out.
 
 bound_adv
   [ (* MAC key *)
-    k <-$ Fq;
+    k <-$ BS_key;
     rho' <- A_cma(q, rho)  with
       MAC(x) = {
         return PRF(k, x)
