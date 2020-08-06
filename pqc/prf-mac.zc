@@ -1,18 +1,15 @@
-(*PRF-based MAC*)
-adversary A: Fq * qubit -> qubit.
-operator M: qubit -> Bool.
-operator M': qubit -> 
-operator PRF: Fq * Fq -> Fq.
-operator RF: Fq -> Fq.
-oracle RF0: Fq -> Fq.
-oracle RF1: Fq -> Fq.
-oracle MAC: Fq -> Fq.
+operator M: qubits -> Bool.
+operator M': Fq * qubits -> Fq * Fq
 
 (* QPRF assumption *)
-adversary A_qprf : Fq * qubit -> qubit.
+adversary A_qprf : Fq * qubits -> qubits.
+operator PRF: BS_key * BS_msg -> BS_out.
+operator RF: BS_msg -> BS_out.
+oracle RF0: BS_msg -> BS_out.
+oracle RF1: BS_msg -> BS_out.
 
 assumption qprf
-  [ k <-$ Fq; 
+  [ k <-$ BS_key; 
     rho' <- A_qprf(q, rho) with 
          RF0(x) = {
            return PRF(k, x)
@@ -22,20 +19,29 @@ assumption qprf
            return RF(x)
          }; let b = M(rho'); ].
 
+
+(* QRO assumption *)
+adversary A_qro : Fq * qubits -> qubits.
+
 assumption qro
-  [ rho' <- A_qprf(q, rho) with 
+  [ rho' <- A_qro(q, rho) with 
          RF1(x) = {
            return RF(x)
          }; 
-         let (xi, ti) = List_{q + 1} M'(rho'); 
+         let (xi, ti) = List_{q + 1} M'(q, rho'); 
   ]: List_{q + 1} ti = RF(xi);
+
+(*PRF-based MAC*)
+adversary A_cma: Fq * qubits -> qubits.
+oracle MAC: BS_msg -> BS_out.
 
 bound_adv
   [ (* MAC key *)
     k <-$ Fq;
-    rho' <- A(q, rho)  with
+    rho' <- A_cma(q, rho)  with
       MAC(x) = {
         return PRF(k, x)
       };
-    let (xi, ti) = List_{q + 1} M'(rho');
+    let (xi, ti) = List_{q + 1} M'(q, rho');
   ] : List_{q + 1} ti = PRF(k, xi);
+
