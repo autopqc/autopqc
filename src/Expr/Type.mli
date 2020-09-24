@@ -38,6 +38,7 @@ and ty_node =
   | Fq
   | Prod of ty list
   | Int (* used during extraction *)
+  | Qubit
 
 val equal_ty   : ty -> ty -> bool
 val concat_compat_ty : ty -> ty -> bool
@@ -75,6 +76,7 @@ val mk_Prod    : ty list -> ty
 val mk_Int     : ty
 val mk_Mat     : mdim -> mdim -> ty 
 val mk_List    : mdim -> ty -> ty
+val mk_Qubit   : ty
 
 (* ** Indicator and destructor functions *)
 

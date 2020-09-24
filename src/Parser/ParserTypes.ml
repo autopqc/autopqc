@@ -15,6 +15,7 @@ type parsedim =
 type parse_ty =
   | Bool
   | Fq
+  | Qubit
   | BS      of string
   | Mat     of parsedim * parsedim
   | List    of parsedim * parse_ty

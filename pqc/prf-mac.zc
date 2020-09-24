@@ -1,47 +1,44 @@
-operator M: qubits -> Bool.
-operator M': Fq * qubits -> Fq * Fq
+operator M: Qubit -> Bool.
 
 (* QPRF assumption *)
-adversary A_qprf : Fq * qubits -> qubits.
-operator PRF: BS_key * BS_msg -> BS_out.
+adversary A_qprf : () -> Qubit.
+operator PRF: (BS_key * BS_msg) -> BS_out.
 operator RF: BS_msg -> BS_out.
-oracle RF0: BS_msg -> BS_out.
-oracle RF1: BS_msg -> BS_out.
+oracle H: BS_msg -> BS_out.
 
 assumption qprf
-  [ k <-$ BS_key; 
-    rho' <- A_qprf(q, rho) with 
-         RF0(x) = {
-           return PRF(k, x)
-         }; let b = M(rho'); ]
-  [ rho' <- A_qprf(q, rho) with 
-         RF1(x) = {
-           return RF(x)
-         }; let b = M(rho'); ].
-
+[ k <-$ BS_key;
+  rho' <- A_qprf() with 
+    H(x) = {
+      return PRF(k, x)
+    }; let b = M(rho'); ]
+[ rho' <- A_qprf() with 
+    H(x) = {
+      return RF(x)
+    }; let b = M(rho'); ].
 
 (* QRO assumption *)
-adversary A_qro : Fq * qubits -> qubits.
+adversary A_qro : Fq -> Qubit.
+operator M': Qubit -> List_{q+1} (Fq * Fq).
+operator ListMT : Fq -> List_{q+1} (Fq * Fq).
+operator V : List_{q+1} (Fq * Fq) -> Bool.
 
-assumption qro
-  [ rho' <- A_qro(q, rho) with 
-         RF1(x) = {
-           return RF(x)
-         }; 
-         let (xi, ti) = List_{q + 1} M'(q, rho'); 
-  ]: List_{q + 1} ti = RF(xi);
+assumption qro succ
+[ n <-$ Fq;
+  rho' <- A_qro(n); let m = M'(rho');
+  ] : V(m).
 
-(*PRF-based MAC*)
-adversary A_cma: Fq * qubits -> qubits.
+(* PRF-based MAC *)
+adversary A_cma: () -> Qubit.
 oracle MAC: BS_msg -> BS_out.
 
-bound_adv
+bound_succ
   [ (* MAC key *)
     k <-$ BS_key;
-    rho' <- A_cma(q, rho)  with
+    rho' <- A_cma()  with
       MAC(x) = {
         return PRF(k, x)
-      };
-    let (xi, ti) = List_{q + 1} M'(q, rho');
-  ] : List_{q + 1} ti = PRF(k, xi);
+      }; let m = M'(rho');
+  ] : V(m).
 
+  

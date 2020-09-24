@@ -57,6 +57,7 @@ let ty_of_parse_ty ts pty =
     match pty with
     | Bool      -> T.mk_Bool
     | Fq        -> T.mk_Fq
+    | Qubit     -> T.mk_Qubit
     | Prod(pts) -> T.mk_Prod (L.map go pts)
     | BS(s)     -> T.mk_BS(create_lenvar ts s)
     | Mat(a,b)  -> T.mk_Mat (create_dimvar ts a) (create_dimvar ts b)
@@ -369,6 +370,7 @@ let gcmd_of_parse_gcmd (vmap : GU.vmap) ts gc =
     let os = L.map (odef_of_parse_odef vmap ts) os in
     let cty = asym.AdvSym.codom in
     begin match cty.Type.ty_node, vs with
+    (* | Type.Qubit, _ -> tacerror "Parser: not implemented for Qubit" *)
     | Type.Prod([]), [] ->
       G.GCall([], asym, e, os)
     | _, [v] ->
@@ -382,7 +384,7 @@ let gcmd_of_parse_gcmd (vmap : GU.vmap) ts gc =
       let vts = L.combine vs tys in
       let vs = L.map (fun (v,t) -> create_var vmap ts Unqual v t) vts in
       G.GCall(vs, asym, e, os)
-    | (Type.BS _|Type.Bool|Type.G _|Type.Fq|Type.Int|Type.TySym _ | Type.Mat
+    | (Type.BS _|Type.Qubit|Type.Bool|Type.G _|Type.Fq|Type.Int|Type.TySym _ | Type.Mat
     _|Type.List _)
       , ([] | _ :: _ :: _) ->
       tacerror

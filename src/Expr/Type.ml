@@ -52,6 +52,7 @@ and ty_node =
   | Fq
   | Prod of ty list
   | Int
+  | Qubit
 
 (* ** Equality, hashing, and hash consing *)
 
@@ -156,7 +157,8 @@ module Hsty = Hashcons.Make (struct
     | Prod ts       -> hcomb_l hash_ty 6 ts
     | Mat (a,b)     -> hcomb 8 (hcomb (mdim_hash a) (mdim_hash b))  
     | Int           -> 7
-    | List (d, tp)   -> hcomb 9 (hcomb (mdim_hash d) (hash tp))
+    | List (d, tp)  -> hcomb 9 (hcomb (mdim_hash d) (hash tp))
+    | Qubit         -> 10
 
   let tag n t = { t with ty_tag = n }
 end)
@@ -192,6 +194,8 @@ let mk_Fq = mk_ty Fq
 let mk_Bool = mk_ty Bool
 
 let mk_Int = mk_ty Int
+
+let mk_Qubit = mk_ty Qubit
 
 let mk_Prod tys =
   match tys with
@@ -284,3 +288,4 @@ let rec pp_ty fmt ty =
     if Groupvar.name gv = ""
     then F.fprintf fmt "G"
     else F.fprintf fmt "G_%s" (Groupvar.name gv)
+  | Qubit             -> F.fprintf fmt "Qubit"

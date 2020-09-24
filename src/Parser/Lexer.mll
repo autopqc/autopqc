@@ -123,6 +123,7 @@
       ; "Fq",                       TFQ                       (* kw: type        *)
       ; "Zq",                       TFQ                       (* kw: type        *)
       ; "Bool",                     TBOOL                     (* kw: type        *)
+      ; "Qubit",                    QUBIT                     (* kw: type        *)
 
       (* operators *)
       ; "forall",                   FORALL                    (* kw: op          *)

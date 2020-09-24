@@ -106,6 +106,7 @@ let invert' ?ppt_inverter:(ppt=false) emaps do_div known_es to_ =
           Hty.add sub_solver e.e_ty (Se.singleton e)
       end
     | TySym _ | Int | Prod _ -> ()
+    | Qubit -> failwith "not implemented for qubit in add_sub_solver of src/Deduce/Deduc.ml"
   in
   let add_sub e = add_sub_solver e; add_sub_constr e in
   (* for everything except field expressions, there is no nesting in the
@@ -286,6 +287,7 @@ let invert' ?ppt_inverter:(ppt=false) emaps do_div known_es to_ =
               | Mat _ -> DeducList.solve_mat_list, fun t -> is_Mat t || is_MatList t
               | _ -> DeducList.solve_other_list, fun t2 -> is_ListOfTy (snd p) t2)
       | TySym _ | Prod _ | Int -> assert false
+      | Qubit -> failwith "not implemented for qubit in solve of src/Deduce/Deduc.ml"
     in
     let k,u = Se.partition is_in subexprs in
     if Se.is_empty u then (

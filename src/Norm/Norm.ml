@@ -24,8 +24,8 @@ let rec norm_type e =
   | Mat _ -> e 
   | List _ -> e
   | G gv    -> mk_GExp_Gen gv (mk_GLog e)   (* g ^ (log x) *)
-
   | Prod lt -> mk_Tuple (List.mapi (fun i _ -> norm_type (mk_Proj i e)) lt)
+  | Qubit -> e
 
 let mk_proj_simpl i e =
   match e.e_node with

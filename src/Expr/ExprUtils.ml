@@ -590,6 +590,7 @@ let sub t =
       mk_Tuple es, mk_Tuple zs
     | Mat _ -> failwith "mat sub" (* TODO *)
     | List _ -> failwith "list sub"
+    | Qubit -> failwith "qubit sub" (* no subtraction for qubit *)
     | Int | TySym _ -> assert false
   in
   let x1 = VarSym.mk "x" t in

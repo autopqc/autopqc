@@ -29,7 +29,7 @@
 %token <string> TBS
 %token TMAT
 %token TLIST
-%token TBOOL TFQ 
+%token TBOOL TFQ QUBIT 
 %token <string> TG
 
 /*----------------------------------------------------------------------
@@ -192,6 +192,7 @@ typ :
 | TBOOL                          { Bool }
 | i=TG                           { G(i) }
 | TFQ                            { Fq }
+| QUBIT                          { Qubit }
 | TMAT LCBRACE d1=dimexp COMMA d2=dimexp RCBRACE { Mat(d1,d2)}
 | TLIST LCBRACE d=dimexp RCBRACE t=typ           { List(d,t) }
 | LPAR l=seplist0(STAR,typ) RPAR { mk_Prod l }

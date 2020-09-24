@@ -132,13 +132,13 @@ let mk_assm_dec name inf gd1 gd2 symvars =
       let mk_orcl (o1,vs1,od1,c1) (o2,vs2,od2,c2) = 
         if not (OrclSym.equal o1 o2) then
           tacerror
-             "oracle name calls in decisional assumption must match up: %a vs %a"
+             "[1] oracle name calls in decisional assumption must match up: %a vs %a"
              OrclSym.pp o1 OrclSym.pp o2;
         if not (equal_list VarSym.equal vs1 vs2) then
-          tacerror "oracle parameter in decisional assumption must match up: %a vs %a"
+          tacerror "[2] oracle parameter in decisional assumption must match up: %a vs %a"
             (pp_list "," VarSym.pp) vs1 (pp_list "," VarSym.pp) vs2;
         if c1 <> c2 then 
-          tacerror "oracle counter in decisional assumption must match up: %a vs %a"
+          tacerror "[3] oracle counter in decisional assumption must match up: %a vs %a"
             pp_ocounter c1 pp_ocounter c2;
         match od1, od2 with
         | Oreg (lc1,r1), Oreg (lc2,r2) ->
