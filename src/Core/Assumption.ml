@@ -132,13 +132,13 @@ let mk_assm_dec name inf gd1 gd2 symvars =
       let mk_orcl (o1,vs1,od1,c1) (o2,vs2,od2,c2) = 
         if not (OrclSym.equal o1 o2) then
           tacerror
-             "[1] oracle name calls in decisional assumption must match up: %a vs %a"
+             "oracle name calls in decisional assumption must match up: %a vs %a"
              OrclSym.pp o1 OrclSym.pp o2;
         if not (equal_list VarSym.equal vs1 vs2) then
-          tacerror "[2] oracle parameter in decisional assumption must match up: %a vs %a"
+          tacerror "oracle parameter in decisional assumption must match up: %a vs %a"
             (pp_list "," VarSym.pp) vs1 (pp_list "," VarSym.pp) vs2;
         if c1 <> c2 then 
-          tacerror "[3] oracle counter in decisional assumption must match up: %a vs %a"
+          tacerror "oracle counter in decisional assumption must match up: %a vs %a"
             pp_ocounter c1 pp_ocounter c2;
         match od1, od2 with
         | Oreg (lc1,r1), Oreg (lc2,r2) ->
@@ -223,20 +223,44 @@ let pp_atype fmt = function
   | A_Succ -> pp_string fmt "Succ"
   | A_Adv  -> pp_string fmt "Adv"
 
+type assm_com_orcls =
+  OrclSym.t * VarSym.t list * obody * counter
+
+type assm_com_adv_call = {
+   ac_ac_sym   : AdvSym.t;
+   ac_ac_lv    : VarSym.t list;
+   ac_ac_args  : expr;
+   ac_ac_orcls : assm_com_orcls list;
+  }
+
 type assm_comp = {
   ac_name       : string;       (* name of assumption *)
   ac_inf        : bool;         (* information-theoretic assumption *)
   ac_type       : assm_type;
   ac_prefix     : gdef;         (* prefix of assumption *)
   ac_event      : ev;           (* event expression *)
-  ac_acalls     : (AdvSym.t * VarSym.t list * expr) list;
+  ac_acalls     : assm_com_adv_call list;
    (* adversary calls: asym, returned variables, and argument *)
   ac_symvars    : vs list list; (* symmetric in given variables *)
 }
 
-let pp_acall_comp fmt (asym,vs1,args1) =
-  F.fprintf fmt "(%a) <- %a(%a)@\n"
-    (pp_list "," VarSym.pp) vs1 AdvSym.pp asym pp_expr args1
+let pp_acall_comp fmt ac_ac =
+  let pp_odef2 fmt (os, vs, b, c) =
+    F.fprintf fmt "@[<v>%a(@[<hov 0>%a@])%a =@ %a@]"
+      OrclSym.pp os
+      (pp_list "," (VarSym.pp_qual ~qual:(Qual os))) vs
+      pp_ocounter c
+      (pp_obody ~nonum:false os None) b
+  in
+  let pp_orcls fmt orcls =
+    if orcls <> [] then
+      F.fprintf fmt " with@\n%a" (pp_list ",@;" pp_odef2) orcls
+  in
+  F.fprintf fmt "(%a) <- %a(%a)@\n%a"
+    (pp_list "," VarSym.pp) ac_ac.ac_ac_lv
+    AdvSym.pp ac_ac.ac_ac_sym
+    pp_expr ac_ac.ac_ac_args
+    pp_orcls ac_ac.ac_ac_orcls
 
 let pp_assm_comp fmt ac =
   F.fprintf fmt "assumption %s (%a):@\n" ac.ac_name pp_atype ac.ac_type;
@@ -252,9 +276,20 @@ let mk_assm_comp name inf atype gd ev sym_vars =
     | [] ->
       L.rev acc
     | GCall(vres,asym,arg,od)::acalls ->
-      if not (od = []) then
-        tacerror "computational assumption with oracles not supported yet";
-      go ((asym,vres,arg)::acc) acalls
+       (* if not (od = []) then
+        tacerror "computational assumption with oracles not supported yet"; *)
+       let mk_orcl (o,vs,od,c) =
+         match od with
+         | Oreg (lc,r) -> (o, vs, (lc, r), c)
+         | _ -> tacerror "hybrid oracle not supported in computational assumption"
+         in
+       let ac_ac : assm_com_adv_call = {
+           ac_ac_sym = asym;
+           ac_ac_lv = vres;
+           ac_ac_args = arg;
+           ac_ac_orcls = L.map mk_orcl od;
+         } in
+      go (ac_ac::acc) acalls
     | _ ->
       tacerror "invalid computational assumption"
   in
@@ -278,6 +313,7 @@ let private_vars_comp assm =
     Se.empty
     assm.ac_prefix
 
+(*
 let inst_comp ren assm =
   let ren_v (x:VarSym.t) = try VarSym.M.find x ren with Not_found -> x in
   let ren_acall (asym,vres,e) = (asym, L.map ren_v vres, subst_v_expr ren_v e) in
@@ -288,4 +324,28 @@ let inst_comp ren assm =
     ac_acalls     = L.map ren_acall assm.ac_acalls;
     ac_symvars    = L.map (L.map ren_v) assm.ac_symvars;
   }
+ *)
+let inst_comp ren assm =
+  let ren_v (x:VarSym.t) = try VarSym.M.find x ren with Not_found -> x in
+  let ren_ob ob = Game.subst_v_obody ren_v ob in
+  let ren_o (o, vs, b, c) =
+    let vs' = L.map ren_v vs in (o, vs', ren_ob b, c) 
+  in
+  let ren_acall ac_ac =
+    (* (asym, L.map ren_v vres, subst_v_expr ren_v e, L.map ren_o orcls) *)
+    {
+      ac_ac_sym = ac_ac.ac_ac_sym;
+      ac_ac_lv = L.map ren_v ac_ac.ac_ac_lv;
+      ac_ac_args = subst_v_expr ren_v ac_ac.ac_ac_args;
+      ac_ac_orcls = L.map ren_o ac_ac.ac_ac_orcls;
+    }
+  in
+  let subst_g = Game.subst_v_gdef ren_v in
+  { assm with
+    ac_prefix     = subst_g assm.ac_prefix;
+    ac_event      = subst_v_expr ren_v assm.ac_event;
+    ac_acalls     = L.map ren_acall assm.ac_acalls;
+    ac_symvars    = L.map (L.map ren_v) assm.ac_symvars;
+  }
+  
 

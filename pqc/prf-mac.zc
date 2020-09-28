@@ -23,7 +23,11 @@ operator M': List_{d} Qubit -> List_{q+1} (BS_msg * BS_tag).
 operator V : List_{q+1} (BS_msg * BS_tag) -> Bool.
 
 assumption qro succ
-[ rho <- A_qro(); let m = M'(rho);
+[ k <-$ BS_key;
+  rho <- A_qro() with
+  H(x) = {
+    return PRF(k,x)
+  }; let m = M'(rho);
   ] : V(m).
 
 (* PRF-based MAC *)
@@ -38,5 +42,8 @@ bound_succ
         return PRF(k, x)
       }; let m = M'(rho');
   ] : V(m).
+
+
+
 
   

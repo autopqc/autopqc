@@ -419,7 +419,7 @@ let match_expr (vars : VarSym.t list) pat e =
 
 let assm_acall assm =
   match assm.ac_acalls with
-  | [(_,vs,e)] -> ret (vs,e)
+  | ac_ac :: [] -> ret(ac_ac.ac_ac_lv, ac_ac.ac_ac_args)
   | _ -> mempty
 
 let match_exprs_assm ju assm =
@@ -683,7 +683,9 @@ let t_assm_comp_exact ts maname mrngs ju =
   (* extend renaming with mappings for variables binding return values *)
   let ren =
     List.fold_left2
-      (fun rn  (_,j) (_asym,vres,_) ->
+      (fun rn  (_,j) ac_ac ->
+        let _asym = ac_ac.ac_ac_sym in
+        let vres = ac_ac.ac_ac_lv in
         let nvres = L.length vres in
         let vres_ju =
           L.take nvres (L.drop (j + 1 - nvres) se.se_gdef)

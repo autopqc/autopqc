@@ -1000,7 +1000,9 @@ let assm_comp_valid_ranges rn assm acalls_ju rngs =
     | [], [] -> ()
     | _::_, [] |  [], _::_ ->
       tacerror "%s: ranges and adversary calls do not match up" rn
-    | (i,j)::rngs, (_,vres,e)::acalls ->
+    | (i,j)::rngs, ac_ac::acalls ->
+       let vres = ac_ac.ac_ac_lv in
+       let e = ac_ac.ac_ac_args in
       let len = j - i + 1 in
       let len_res = L.length vres in
       let len_body = len - 1 - len_res in

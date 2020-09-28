@@ -49,13 +49,23 @@ type assm_type = A_Succ | A_Adv
 
 val pp_atype : F.formatter -> assm_type -> unit
 
+type assm_com_orcls =
+  OrclSym.t * VarSym.t list * obody * counter
+
+type assm_com_adv_call = {
+   ac_ac_sym   : AdvSym.t;
+   ac_ac_lv    : VarSym.t list;
+   ac_ac_args  : expr;
+   ac_ac_orcls : assm_com_orcls list;
+  }
+
 type assm_comp = private {
   ac_name       : string;       (*r name of assumption *)
   ac_inf        : bool;         (*r information-theoretic assumption *)
   ac_type       : assm_type;    (* type of assumption *)
   ac_prefix     : gdef;         (*r prefix of assumption *)
   ac_event      : expr;         (*r event expression *)
-  ac_acalls     : (AdvSym.t * VarSym.t list * expr) list;
+  ac_acalls     : assm_com_adv_call list;
    (*r adversary calls (same asym) and arguments/returned variables *)
   ac_symvars    : vs list list; (*r symmetric in given variables *)
 }
