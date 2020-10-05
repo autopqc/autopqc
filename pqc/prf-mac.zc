@@ -1,4 +1,4 @@
-operator M: List_{d} Qubit -> Bool.
+adversary M: List_{d} Qubit -> Bool.
 
 (* QPRF assumption *)
 adversary A_qprf : () -> List_{d} Qubit.
@@ -11,15 +11,28 @@ assumption qprf
   rho <- A_qprf() with 
     H(x) = {
       return PRF(k, x)
-    }; let b = M(rho); ]
+    }; b <- M(rho); ]
 [ rho <- A_qprf() with 
     H(x) = {
       return RF(x)
-    }; let b = M(rho); ].
+    }; b <- M(rho); ].
 
+  bound_succ
+  [ (* MAC key *)
+    k <-$ BS_key;
+    rho <- A_qprf() with
+      H(x) = {
+        return PRF(k, x)
+      }; b <- M(rho);
+    ] : b.
+
+    (* abstract 1 a_arg(). *)
+    assumption_decisional * qprf -> [k,k; rho,rho] 2 3 [3 [(1 1 1 H)]].
+    
+(*
 (* QRO assumption *)
 adversary A_qro : () -> List_{d} Qubit.
-operator M': List_{d} Qubit -> List_{q+1} (BS_msg * BS_tag).
+adversary M': List_{d} Qubit -> List_{q+1} (BS_msg * BS_tag).
 operator V : List_{q+1} (BS_msg * BS_tag) -> Bool.
 
 assumption qro succ
@@ -27,23 +40,35 @@ assumption qro succ
   rho <- A_qro() with
   H(x) = {
     return PRF(k,x)
-  }; let m = M'(rho);
-  ] : V(m).
+  }; mt <- M'(rho);
+  ] : V(mt).
 
 (* PRF-based MAC *)
 adversary A_cma: () -> List_{d} Qubit.
 oracle MAC: BS_msg -> BS_tag.
 
+    
 bound_succ
-  [ (* MAC key *)
+[ (* MAC key *)
     k <-$ BS_key;
-    rho' <- A_cma()  with
-      MAC(x) = {
+    rho <- A_cma() with
+      H(x) = {
         return PRF(k, x)
-      }; let m = M'(rho');
-  ] : V(m).
+      }; m <- M'(rho); let b = V(m);
+    ] : b.
+
+    abstract 2 a_arg ().
+    assumption_decisional * qprf -> [k, k] 2 5 [3 4 H].
+    
+    abstract 2 a_arg ().
+    abstract 4 a_ret rho.
+    abstract 5 b (M(a_ret)).
 
 
+  assumption_decisional * qprf <- [
+    k, k
+  ] 3 4 [3 [(1 1 1 H)]].
 
+*)
 
   
