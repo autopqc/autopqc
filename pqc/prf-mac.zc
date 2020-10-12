@@ -9,25 +9,41 @@ oracle H: BS_msg -> BS_tag.
 assumption qprf
 [ k <-$ BS_key;
   rho <- A_qprf() with 
-    H(x) = {
-      return PRF(k, x)
+  H(x) = {
+      let ret = PRF(k,x);
+      return ret
     }; b <- M(rho); ]
 [ rho <- A_qprf() with 
-    H(x) = {
-      return RF(x)
+  H(x) = {
+      let ret = RF(x);
+      return ret
     }; b <- M(rho); ].
 
   bound_succ
   [ (* MAC key *)
     k <-$ BS_key;
     rho <- A_qprf() with
-      H(x) = {
-        return PRF(k, x)
+    H(x) = {
+        let ret = PRF(k,x);
+        return ret
       }; b <- M(rho);
     ] : b.
 
-    (* abstract 1 a_arg(). *)
-    assumption_decisional * qprf -> [k,k; rho,rho] 2 3 [3 [(1 1 1 H)]].
+        (* abstract 1 a_arg(). *)
+
+    abstract 2 a_arg().
+    abstract 4 out rho.
+    hybrid (3,1) {
+      let ret = PRF(k,x);
+      return ret
+    }.
+    dist_eq.
+    assumption_decisional * qprf -> [
+      k,k;
+      rho,rho;
+        H`x, H`x;
+        H`ret, H`ret
+    ] 2 4 [3 [(1 1 2 H)]].
     
 (*
 (* QRO assumption *)
