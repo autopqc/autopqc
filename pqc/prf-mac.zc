@@ -10,13 +10,11 @@ assumption qprf
 [ k <-$ BS_key;
   rho <- A_qprf() with 
   H(x) = {
-      let ret = PRF(k,x);
-      return ret
+      return PRF(k, x)
     }; b <- M(rho); ]
 [ rho <- A_qprf() with 
   H(x) = {
-      let ret = RF(x);
-      return ret
+      return RF(x)
     }; b <- M(rho); ].
 
   bound_succ
@@ -24,7 +22,8 @@ assumption qprf
     k <-$ BS_key;
     rho <- A_qprf() with
     H(x) = {
-        let ret = PRF(k,x);
+        let inp = x;
+        let ret = PRF(k,inp);
         return ret
       }; b <- M(rho);
     ] : b.
@@ -33,16 +32,19 @@ assumption qprf
 
     abstract 2 a_arg().
     abstract 4 out rho.
+(*
     hybrid (3,1) {
-      let ret = PRF(k,x);
+      let inp = x;
+      let ret = PRF(k,inp);
       return ret
     }.
     dist_eq.
+*)
     assumption_decisional * qprf -> [
-      k,k;
-      rho,rho;
-        H`x, H`x;
-        H`ret, H`ret
+      k, k;
+      rho, out;
+      b, b;
+      H`x, H`inp
     ] 2 4 [3 [(1 1 2 H)]].
     
 (*
