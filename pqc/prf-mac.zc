@@ -1,7 +1,12 @@
+(*
 adversary M: List_{d} Qubit -> Bool.
 
 (* QPRF assumption *)
 adversary A_qprf : () -> List_{d} Qubit.
+*)
+adversary M: Fq -> Bool.
+adversary A_qprf : () -> Fq.
+
 operator PRF: (BS_key * BS_msg) -> BS_tag.
 operator RF: BS_msg -> BS_tag.
 oracle H: BS_msg -> BS_tag.
